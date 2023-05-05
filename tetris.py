@@ -1,6 +1,5 @@
 import sys
 import math
-import random
 import numpy as np
 import pygame as game
 from pygame.locals import *
@@ -20,7 +19,7 @@ def generate_board_colors():
     return grid_colors
 
 
-def tetromino_generation():
+def generate_tetro_shapes():
 
     purple = (136, 0, 204)
     green = (25, 255, 140)
@@ -149,19 +148,17 @@ def tetromino_generation():
                       'Z': {'shape': z_shape, 'color': red,
                             'alt1': z_shape_alt_1},
 
-                      'J': {'shape': j_shape, 'color': blue},
+                      'J': {'shape': j_shape, 'color': blue,
+                            'alt1': j_shape_alt_1, 'alt2': j_shape_alt_2,
+                            'alt3': j_shape_alt_3},
 
-                      'L': {'shape': l_shape, 'color': orange},
+                      'L': {'shape': l_shape, 'color': orange,
+                            'alt1': l_shape_alt_1, 'alt2': l_shape_alt_2,
+                            'alt3': l_shape_alt_3
+                            },
 
-                      'I': {'shape': i_shape, 'color': light_blue}}
-
-    # shapes = {'T': t_shape,
-    #           'S': s_shape,
-    #           'O': o_shape,
-    #           'Z': z_shape,
-    #           'J': j_shape,
-    #           'L': l_shape,
-    #           'I': i_shape}
+                      'I': {'shape': i_shape, 'color': light_blue,
+                            'alt1': i_shape_alt_1}}
 
     return updated_shapes
 
@@ -183,9 +180,9 @@ class Window:
         self.score = 0
 
         self.last = game.time.get_ticks()
-        self.cool_down = 300
+        self.cool_down = 400
 
-        self.key_cool_down = 50
+        self.key_cool_down = 175
         self.key_last = game.time.get_ticks()
 
         self.grid_occupied = generate_board()
@@ -214,7 +211,7 @@ class Window:
 
         self.game_screen()
 
-        tetro_shapes = tetromino_generation()
+        tetro_shapes = generate_tetro_shapes()
         current_piece = self.generate_next_piece()
         alt = 0
 
@@ -236,22 +233,35 @@ class Window:
         moved_left = False
         moved_right = False
 
+        # while game is not quit
         while 1:
             if starting_position:
-                self.draw_tetro(current_piece, alt, tetro_shapes, cur_x, cur_y)
+                self.draw_tetro(current_piece, alt, tetro_shapes,
+                                cur_x, cur_y)
                 starting_position = False
 
             else:
-                # self.key_press()
+                # check for full rows
+                self.rows_check()
+
+                self.key_press()
 
                 now = game.time.get_ticks()
                 # print("now: " + str(now))
                 # print("last: " + str(self.last))
-                # if the appropriate amount of time has passed,
-                # move tetro
+
+                # if the appropriate amount of time has passed, move tetro
                 if now - self.last >= self.cool_down:
 
                     # redraw borders
+                    #
+                    # EVENTUALLY:
+                    #     instead of redrawing borders every frame, create two
+                    #     surfaces: first on which to draw static elements (bg,
+                    #       game borders, static text); second on which to draw
+                    #       dynamic elements every frame (score, pieces, etc.)
+                    #
+                    #
                     self.game_screen()
 
                     self.last = now
@@ -264,14 +274,23 @@ class Window:
                                                     cur_x, cur_y)
                         # increment cur_y
                         cur_y += 25
-                        self.draw_tetro(current_piece, alt, tetro_shapes,
-                                        cur_x, cur_y)
+                        self.draw_tetro(current_piece, alt,
+                                        tetro_shapes, cur_x, cur_y)
                         self.current_piece_occupying(current_piece, alt,
                                                      tetro_shapes,
                                                      cur_x, cur_y)
                         self.has_bottomed()
 
                     if self.has_bottomed():
+                        self.current_piece_occupying(current_piece, alt,
+                                                     tetro_shapes, cur_x, cur_y)
+
+                        # mark resting place of piece in grid_occupied
+                        self.update_grid_occupied()
+                        self.update_grid_colors(
+                            self.current_piece_board_spaces,
+                            current_piece, tetro_shapes)
+
                         # reset cur_x and cur_y to top of board
                         # reset alt to default 0
                         cur_x = 275
@@ -289,9 +308,6 @@ class Window:
 
                         # generate next_piece
                         next_piece = self.generate_next_piece()
-
-                        # mark resting place of piece in grid_occupied
-                        self.update_grid_occupied()
 
                         # reset current_piece_occupying values to new
                         # current_piece
@@ -342,9 +358,15 @@ class Window:
                     elif press == "rotate":
                         is_valid = self.valid_rotation(current_piece, alt,
                                                        tetro_shapes)
+
                         if is_valid >= 0:
+
+                            print('position before: ' +
+                                  str(self.current_piece_board_spaces))
+
                             old_alt = alt
                             alt = is_valid
+                            # print('alt: ' + str(alt))
 
                             self.reset_for_moving_piece(current_piece, old_alt,
                                                         tetro_shapes,
@@ -352,11 +374,34 @@ class Window:
                             self.draw_tetro(current_piece, alt, tetro_shapes,
                                             cur_x, cur_y)
 
+                            self.current_piece_occupying(current_piece,
+                                                         alt, tetro_shapes,
+                                                         cur_x, cur_y)
+
+
+                            print('position after: ' +
+                                  str(self.current_piece_board_spaces))
+
+                        else:
+                            print('is valid result was: ' + str(is_valid))
+
                     self.current_piece_occupying(current_piece, alt,
                                                  tetro_shapes,
                                                  cur_x, cur_y)
 
             game.display.update()
+
+    # write main_menu()
+    def main_menu(self):
+        pass
+
+    # write pause_menu()
+    def pause_menu(self):
+        pass
+
+    # move main() functions running tetris here
+    def run_tetris(self):
+        pass
 
     def game_screen(self):
         blue = (50, 20, 250)
@@ -557,8 +602,11 @@ class Window:
         if pressed_keys[K_SPACE]:
             if now - self.key_last >= self.key_cool_down:
                 self.key_last = now
-                print('moving down faster')
+                print('rotating')
                 return "rotate"
+
+        if pressed_keys[K_j]:
+            print("swap piece")
 
     def valid_shift(self, direction):
         if direction == "left":
@@ -568,6 +616,7 @@ class Window:
                 piece_x_val = self.current_piece_board_spaces[i][0]
                 piece_y_val = self.current_piece_board_spaces[i][1]
                 if self.grid_occupied[piece_y_val][piece_x_val-1] == 1:
+                    print('left occupied')
                     return False
             return True
         if direction == "right":
@@ -577,8 +626,16 @@ class Window:
                 piece_x_val = self.current_piece_board_spaces[j][0]
                 piece_y_val = self.current_piece_board_spaces[j][1]
                 if self.grid_occupied[piece_y_val][piece_x_val+1] == 1:
+                    print('right occupied')
                     return False
             return True
+
+    def update_grid_colors(self, tetro_array, tetro_type, shapes):
+        shape_color = shapes[tetro_type]['color']
+        for a in tetro_array:
+            self.grid_colored[a[1]][a[0]] = shape_color
+        print('color was ' + str(shape_color))
+        print('new colored grid: ' + str(self.grid_colored))
 
     def valid_rotation(self, tetro_type, alt, shapes):
         if alt == 0:
@@ -595,6 +652,23 @@ class Window:
             return 0
             print("cannot rotate")
         return -1
+
+    def rows_check(self):
+        for i in range(0, 20):
+            count = 0
+            for j in range(0, 10):
+                if self.grid_occupied[i][j] == 1:
+                    count += 1
+
+            if count == 10:
+                self.clear_full_row(i)
+
+
+    def clear_full_row(self, row):
+        pass
+
+    def update_score(self):
+        pass
 
 
 Tetris = Window()
