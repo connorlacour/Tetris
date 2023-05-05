@@ -16,7 +16,7 @@ class App:
         #   elif main_return is 'exit' -> quit game
         #   elif main_return is 'options' -> call options() to run options
         #   else -> rerun mainMenu
-        if menu_return == 'new game':
+        if menu_return == 'new_game':
             self.start_game()
         elif menu_return == 'options':
             self.options()
