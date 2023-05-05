@@ -163,7 +163,7 @@ def generate_tetro_shapes():
     return updated_shapes
 
 
-class Window:
+class NewGame:
     def __init__(self):
         """
         """
@@ -669,6 +669,3 @@ class Window:
 
     def update_score(self):
         pass
-
-
-Tetris = Window()
