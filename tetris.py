@@ -6,48 +6,36 @@ from pygame.locals import *
 
 import config
 from models.tetrominos import Tetrominos
+from models.board import Board
 from utils.color_dict import ColorDict
 
 color_dict = ColorDict().colors
 
-
-def generate_board():
-    w = 10
-    h = 20
-    grid_occupied = [[0 for x in range(w)] for y in range(h)]
-    return grid_occupied
-
-
-def generate_board_colors():
-    w = 10
-    h = 20
-    grid_colors = [['X' for x in range(w)] for y in range(h)]
-    return grid_colors
-
 class NewGame:
     def __init__(self):
-        """
-        """
         self.draw_time = pg.time.get_ticks()
-        self.window_height = 600
-        self.surface = pg.display.set_mode((600, 600))
+        self.surface = pg.display.set_mode((config.window['width'], config.window['height']))
         self.lose = False
         self.win = False
         self.current_piece = None
-        self.tetro_array = ["S", "Z", "J", "L", "I", "O", "T"]
+        self.tetro_array = list(Tetrominos().shapes.keys())
 
         self.rows_cleared = 0
         self.current_level = 1
         self.score = 0
+        self.space_size = 25
+        self.grid_x = 10
+        self.grid_y = 20
+        self.board_width = self.grid_x * self.space_size
+        self.board_height = self.grid_y * self.space_size
 
+        self.cool_down = config.cool_down
         self.last = pg.time.get_ticks()
-        self.cool_down = 400
-
-        self.key_cool_down = 175
+        self.key_cool_down = config.key_cool_down
         self.key_last = pg.time.get_ticks()
 
-        self.grid_occupied = generate_board()
-        self.grid_colored = generate_board_colors()
+        self.board = Board(self.grid_x, self.grid_y).generate_board()
+
         self.current_piece_board_spaces = []
 
         self.main()
@@ -57,8 +45,6 @@ class NewGame:
         pg.init()
         pg.display.set_caption(config.title)
 
-        player_lost = False
-        first_piece = True
         starting_position = True
 
         # fill background with off-white
@@ -83,13 +69,9 @@ class NewGame:
         next_x = 500
         next_y = 150
 
-        # self.draw_tetro(next_piece, alt, tetro_shapes, next_x, next_y)
-        # self.current_piece_occupying(current_piece, alt, tetro_shapes,
-        #                              cur_x, cur_y)
-
         self.gameplay_text()
 
-        # final row: self.grid_occupied[19][i] = 1
+        # final row: self.board[19][i] = 1
 
         moved_left = False
         moved_right = False
@@ -97,8 +79,7 @@ class NewGame:
         # while game is not quit
         while 1:
             if starting_position:
-                self.draw_tetro(current_piece, alt, tetro_shapes,
-                                cur_x, cur_y)
+                self.draw_tetro(current_piece, alt, tetro_shapes, cur_x, cur_y)
                 starting_position = False
 
             else:
@@ -145,9 +126,9 @@ class NewGame:
                     #     self.current_piece_occupying(current_piece, alt,
                     #                                  tetro_shapes, cur_x, cur_y)
 
-                    #     # mark resting place of piece in grid_occupied
-                    #     self.update_grid_occupied()
-                    #     self.update_grid_colors(
+                    #     # mark resting place of piece in board
+                    #     self.update_board()
+                    #     self.update_board_colors(
                     #         self.current_piece_board_spaces,
                     #         current_piece, tetro_shapes)
 
@@ -182,6 +163,8 @@ class NewGame:
                     #                     next_x, next_y)
 
             for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    self.quit()
                 if event.type == pg.KEYDOWN:
                     press = self.key_press()
                     if press == "left":
@@ -251,26 +234,13 @@ class NewGame:
 
             pg.display.update()
 
-    # # write main_menu()
-    # def main_menu(self):
-    #     pass
-
-    # # write pause_menu()
-    # def pause_menu(self):
-    #     pass
-
-    # # move main() functions running tetris here
-    # def run_tetris(self):
-    #     pass
-
     def game_screen(self):
-        sizer = 25
-        total_width = self.window_height
-
-        game_x = 10 * sizer
-        game_y = 20 * sizer
-        r = Rect(((total_width - game_x) / 2)-1, (total_width - game_y - 3),
-                 game_x + 2, game_y+3)
+        r = Rect(
+            ((config.window['width'] - self.board_width) / 2) - 1,
+            (config.window['height'] - self.board_height - 2),
+            self.board_width + 2,
+            self.board_height + 2
+        )
 
         pg.draw.rect(surface=self.surface, color=color_dict['blue'], rect=r, width=1)
 
@@ -278,48 +248,50 @@ class NewGame:
         current_level = 1
         current_score = 69
 
-        font = pg.font.SysFont('arial', 25)
-        score_text = font.render('Score:   ' + str(self.score), True,
-                                 color_dict['light_blue'], None)
-        level_text = font.render('Level:   ' + str(self.current_level), True,
-                                 color_dict['light_blue'], None)
+        font = pg.font.SysFont('amiri', 25)
+        score_text = font.render(f'Score: {current_score}', True, color_dict['light_blue'], None)
+        level_text = font.render(f'Level: {current_level}', True, color_dict['light_blue'], None)
         next_block_text = font.render('Next: ', True, color_dict['light_blue'], None)
 
         score_text_rect = score_text.get_rect()
-        score_text_rect.center = (490, 50)
+        score_text_rect.center = (config.window['width'] * 0.82, config.window['height'] * 0.08)
         level_text_rect = score_text.get_rect()
-        level_text_rect.center = (490, 80)
+        level_text_rect.center = (config.window['width'] * 0.82, config.window['height'] * 0.13)
         next_block_text_rect = score_text.get_rect()
-        next_block_text_rect.center = (520, 110)
+        next_block_text_rect.center = (config.window['width'] * 0.82, config.window['height'] * 0.18)
 
         self.surface.blit(score_text, score_text_rect)
         self.surface.blit(level_text, level_text_rect)
         self.surface.blit(next_block_text, next_block_text_rect)
 
     def draw_tetro(self, tetro_type, alt, shapes, cur_x, cur_y):
-        shape_to_print = shapes[tetro_type]['iterations'][alt]['shape']
+        shape_to_draw = shapes[tetro_type]['iterations'][alt]['shape']
         shape_color = shapes[tetro_type]['color']
 
         first_drawn = True
         first_drawn_x = None
         first_drawn_y = None
 
-        m = 175
-        n = 100
-
-        # draw top row slots for troubleshooting
+        # draw grid for troubleshooting
         #
         #
-        for x in range(0, 10):
-        
-            tetro_rect = Rect(m, n, 25, 25)
-            pg.draw.rect(surface=self.surface, color=color_dict['grey230'],
-                           rect=tetro_rect, width=1)
-            m += 25
+        # m = ((config.window['width'] - self.board_width) / 2)
+        # n = (config.window['height'] - self.board_height - 2) + 1
+        # for y in range(0, 20):
+        #     for x in range(0, 10):
+            
+        #         tetro_rect = Rect(m, n, self.space_size, self.space_size)
+        #         pg.draw.rect(surface=self.surface, color=color_dict['grey230'],
+        #                     rect=tetro_rect, width=1)
+        #         m += self.space_size
+        #     n += self.space_size
+        #     m = ((config.window['width'] - self.board_width) / 2)
+        #
+        #
 
         for i in range(0, 5):
             for j in range(0, 5):
-                if shape_to_print[i][j] == 1:
+                if shape_to_draw[i][j] == 1:
 
                     if first_drawn:
 
@@ -418,15 +390,21 @@ class NewGame:
             else:
                 piece_val_y = self.current_piece_board_spaces[i][1]
                 piece_val_x = self.current_piece_board_spaces[i][0]
-                if self.grid_occupied[piece_val_y + 1][piece_val_x] == 1:
+                if self.board[piece_val_y + 1][piece_val_x] == 1:
                     return True
         return False
 
-    # def update_grid_occupied(self):
+    # def update_board(self):
     #     for i in range(0, 4):
     #         piece_val_x = self.current_piece_board_spaces[i][0]
     #         piece_val_y = self.current_piece_board_spaces[i][1]
-    #         self.grid_occupied[piece_val_y][piece_val_x] = 1
+    #         self.board[piece_val_y][piece_val_x] = 1
+
+    def update_board_colors(self, tetro_array, tetro_type, shapes):
+        for a in tetro_array:
+            self.board[a[1]][a[0]] = shapes[tetro_type]['color']
+        print('color was ' + str(shapes[tetro_type]['color']))
+        print('new colored grid: ' + str(self.board))
 
     def key_press(self):
         now = pg.time.get_ticks()
@@ -463,7 +441,7 @@ class NewGame:
     #                 return False
     #             piece_x_val = self.current_piece_board_spaces[i][0]
     #             piece_y_val = self.current_piece_board_spaces[i][1]
-    #             if self.grid_occupied[piece_y_val][piece_x_val-1] == 1:
+    #             if self.board[piece_y_val][piece_x_val-1] == 1:
     #                 print('left occupied')
     #                 return False
     #         return True
@@ -473,17 +451,10 @@ class NewGame:
     #                 return False
     #             piece_x_val = self.current_piece_board_spaces[j][0]
     #             piece_y_val = self.current_piece_board_spaces[j][1]
-    #             if self.grid_occupied[piece_y_val][piece_x_val+1] == 1:
+    #             if self.board[piece_y_val][piece_x_val+1] == 1:
     #                 print('right occupied')
     #                 return False
     #         return True
-
-    def update_grid_colors(self, tetro_array, tetro_type, shapes):
-        shape_color = shapes[tetro_type]['color']
-        for a in tetro_array:
-            self.grid_colored[a[1]][a[0]] = shape_color
-        print('color was ' + str(shape_color))
-        print('new colored grid: ' + str(self.grid_colored))
 
     # def valid_rotation(self, tetro_type, alt, shapes):
     #     if alt == 0:
@@ -505,7 +476,7 @@ class NewGame:
     #     for i in range(0, 20):
     #         count = 0
     #         for j in range(0, 10):
-    #             if self.grid_occupied[i][j] == 1:
+    #             if self.board[i][j] == 1:
     #                 count += 1
 
     #         if count == 10:
@@ -517,3 +488,9 @@ class NewGame:
 
     def update_score(self):
         pass
+
+    def pause_menu(self):
+        pass
+
+    def quit(self):
+        pg.quit()
