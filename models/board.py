@@ -4,8 +4,6 @@ class Board:
     def __init__(self, width=10, height=20) -> None:
         self.w = width
         self.h = height
-
-        print(self.generate_board())
     
     def generate_board(self):
         space = { "color": None }

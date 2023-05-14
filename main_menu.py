@@ -55,18 +55,10 @@ class MainMenu():
         self.quit()
 
     def draw_game_screen(self, highlighted=-1):
-        # draw background
         self.frame.fill(color_dict['black'])
-
-        # draw outline
         self.draw_outline()
-
-        # draw game title to screen
         self.draw_title()
-
-        # draw options to screen
         self.draw_menu_options(highlighted)
-
         self.surface.blit(self.frame, (0, 0))
         pg.display.flip()
 

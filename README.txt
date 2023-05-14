@@ -1,2 +1,2 @@
 To Run:
-> python tetris.py
+> python game.py

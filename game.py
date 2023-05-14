@@ -9,7 +9,6 @@ class App:
         self.run()
     
     def run(self):
-        print('starting run..')
         menu_return = MainMenu().main_loop()
         # from mainMenu:
         #   if main_return is 'new game' -> call start_game() to run new game

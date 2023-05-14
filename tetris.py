@@ -13,21 +13,31 @@ color_dict = ColorDict().colors
 
 class NewGame:
     def __init__(self):
+        
+        # initialize basic screen components
+        pg.init()
+        pg.display.set_caption(config.title)
+
         self.draw_time = pg.time.get_ticks()
         self.surface = pg.display.set_mode((config.window['width'], config.window['height']))
         self.lose = False
         self.win = False
         self.current_piece = None
-        self.tetro_array = list(Tetrominos().shapes.keys())
+        self.tetros = Tetrominos().shapes
+        self.tetro_types = list(self.tetros.keys())
 
         self.rows_cleared = 0
         self.current_level = 1
-        self.score = 0
+        self.score = 69
         self.space_size = 25
         self.grid_x = 10
         self.grid_y = 20
         self.board_width = self.grid_x * self.space_size
         self.board_height = self.grid_y * self.space_size
+        self.top_of_grid = [
+            ((config.window['width'] - self.board_width) / 2) + (self.space_size * 2),
+            config.window['height'] - self.board_height - (self.space_size * 5)
+        ]
 
         self.cool_down = config.cool_down
         self.last = pg.time.get_ticks()
@@ -35,222 +45,164 @@ class NewGame:
         self.key_last = pg.time.get_ticks()
 
         self.board = Board(self.grid_x, self.grid_y).generate_board()
-
         self.current_piece_board_spaces = []
 
         self.main()
 
     def main(self):
-        # initialize basic screen components
-        pg.init()
-        pg.display.set_caption(config.title)
-
-        starting_position = True
-
-        # fill background with off-white
-        background = pg.Surface(self.surface.get_size())
-        background = background.convert()
-        background.fill((0, 0, 0))
-
-        # Blit background to the screen
-        self.surface.blit(background, (0, 0))
-        pg.display.flip()
-
-        self.game_screen()
-
-        tetro_shapes = Tetrominos().shapes
-        current_piece = self.generate_next_piece()
-        alt = 0
-
+        self.current_piece = self.generate_next_piece()
         next_piece = self.generate_next_piece()
 
-        cur_x = 275
-        cur_y = 98
-        next_x = 500
-        next_y = 150
+        cur_x = self.top_of_grid[0]
+        cur_y = self.top_of_grid[1]
+        print(self.top_of_grid)
 
-        self.gameplay_text()
+        # init first piece
+        self.draw_game_screen()
+        self.draw_tetro(self.current_piece)
 
-        # final row: self.board[19][i] = 1
-
-        moved_left = False
-        moved_right = False
-
-        # while game is not quit
         while 1:
-            if starting_position:
-                self.draw_tetro(current_piece, alt, tetro_shapes, cur_x, cur_y)
-                starting_position = False
+            # # check for full rows to eliminate
+            # self.rows_check()
+            now = pg.time.get_ticks()
 
-            else:
-                # # check for full rows
-                # self.rows_check()
-                self.key_press()
+            # if the appropriate amount of time has passed, move tetro
+            if now - self.last >= self.cool_down:
 
-                now = pg.time.get_ticks()
-                # print("now: " + str(now))
-                # print("last: " + str(self.last))
+                # redraw borders
+                #
+                # EVENTUALLY:
+                #     instead of redrawing borders every frame, create two
+                #     surfaces: first on which to draw static elements (bg,
+                #       game borders, static text); second on which to draw
+                #       dynamic elements every frame (score, pieces, etc.)
+                #
+                #
 
-                # if the appropriate amount of time has passed, move tetro
-                if now - self.last >= self.cool_down:
+                self.draw_board()
+                self.last = now
 
-                    # redraw borders
-                    #
-                    # EVENTUALLY:
-                    #     instead of redrawing borders every frame, create two
-                    #     surfaces: first on which to draw static elements (bg,
-                    #       game borders, static text); second on which to draw
-                    #       dynamic elements every frame (score, pieces, etc.)
-                    #
-                    #
-                    self.game_screen()
+                # draw tetro if it has not bottomed out
+                if not self.has_bottomed():
+                    self.current_piece['pos'][1] += 25
+                    self.draw_game_screen()
+                    self.draw_tetro(self.current_piece)
+                    # self.current_piece_occupying(current_piece, self.tetros, cur_x, cur_y)
+                    # self.has_bottomed()
 
-                    self.last = now
+                # if self.has_bottomed():
+                #     self.current_piece_occupying(current_piece, alt, self.tetros, cur_x, cur_y)
 
-                    # draw tetro if it has not bottomed out
-                    # if not self.has_bottomed():
-                    #     # "clear" previous drawing of falling tetro
-                    #     self.reset_for_moving_piece(current_piece, alt,
-                    #                                 tetro_shapes,
-                    #                                 cur_x, cur_y)
-                    #     # increment cur_y
-                    #     cur_y += 25
-                    #     self.draw_tetro(current_piece, alt,
-                    #                     tetro_shapes, cur_x, cur_y)
-                    #     self.current_piece_occupying(current_piece, alt,
-                    #                                  tetro_shapes,
-                    #                                  cur_x, cur_y)
-                    #     # self.has_bottomed()
+                #     # mark resting place of piece in board
+                #     self.update_board()
+                #     self.update_board_colors(self.current_piece_board_spaces, current_piece, self.tetros)
 
-                    # if self.has_bottomed():
-                    #     self.current_piece_occupying(current_piece, alt,
-                    #                                  tetro_shapes, cur_x, cur_y)
+                #     # reset cur_x and cur_y to top of board
+                #     # reset alt to default 0
+                #     cur_x = 275
+                #     cur_y = 98
+                #     alt = 0
 
-                    #     # mark resting place of piece in board
-                    #     self.update_board()
-                    #     self.update_board_colors(
-                    #         self.current_piece_board_spaces,
-                    #         current_piece, tetro_shapes)
+                #     # set value of current_piece to next_piece
+                #     current_piece = next_piece
 
-                    #     # reset cur_x and cur_y to top of board
-                    #     # reset alt to default 0
-                    #     cur_x = 275
-                    #     cur_y = 98
-                    #     alt = 0
+                #     # clear drawing of next_piece to allow for next
+                #     # next_piece
+                #     self.reset_for_moving_piece(next_piece, alt, self.tetros, next_x, next_y)
 
-                    #     # set value of current_piece to next_piece
-                    #     current_piece = next_piece
+                #     # generate next_piece
+                #     next_piece = self.generate_next_piece()
 
-                    #     # clear drawing of next_piece to allow for next
-                    #     # next_piece
-                    #     self.reset_for_moving_piece(next_piece, alt,
-                    #                                 tetro_shapes,
-                    #                                 next_x, next_y)
+                #     # reset current_piece_occupying values to new
+                #     # current_piece
+                #     self.current_piece_occupying(current_piece, alt, self.tetros, cur_x, cur_y)
 
-                    #     # generate next_piece
-                    #     next_piece = self.generate_next_piece()
-
-                    #     # reset current_piece_occupying values to new
-                    #     # current_piece
-                    #     self.current_piece_occupying(current_piece, alt,
-                    #                                  tetro_shapes,
-                    #                                  cur_x, cur_y)
-
-                    #     # draw new next and current pieces
-                    #     self.draw_tetro(current_piece, alt, tetro_shapes,
-                    #                     cur_x, cur_y)
-                    #     self.draw_tetro(next_piece, alt, tetro_shapes,
-                    #                     next_x, next_y)
+                #     # draw new next and current pieces
+                #     self.draw_tetro(current_piece)
+                #     self.draw_tetro(next_piece)
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     self.quit()
                 if event.type == pg.KEYDOWN:
-                    press = self.key_press()
+                    press = self.get_key_pressed()
                     if press == "left":
                         movement_valid = self.valid_shift("left")
                         if movement_valid:
-                            cur_x -= 25
-                            self.reset_for_moving_piece(current_piece, alt,
-                                                        tetro_shapes,
-                                                        cur_x+25, cur_y)
-                            self.draw_tetro(current_piece, alt, tetro_shapes,
-                                            cur_x, cur_y)
+                            self.current_piece -= self.space_size
+                            self.draw_game_screen()
+                            self.draw_tetro(current_piece)
 
                     elif press == "right":
                         movement_valid = self.valid_shift("right")
                         if movement_valid:
-                            cur_x += 25
-                            self.reset_for_moving_piece(current_piece, alt,
-                                                        tetro_shapes,
-                                                        cur_x-25, cur_y)
-                            self.draw_tetro(current_piece, alt, tetro_shapes,
-                                            cur_x, cur_y)
+                            cur_x += self.space_size
+                            self.draw_game_screen()
+                            self.draw_tetro(current_piece)
 
                     elif press == "down":
                         bottomed = self.has_bottomed()
                         if not bottomed:
-                            cur_y += 25
+                            cur_y += self.space_size
                             self.last = now
-                            self.reset_for_moving_piece(current_piece, alt,
-                                                        tetro_shapes,
-                                                        cur_x, cur_y-25)
-                            self.draw_tetro(current_piece, alt, tetro_shapes,
-                                            cur_x, cur_y)
+                            self.draw_game_screen()
+                            self.draw_tetro(current_piece)
 
                     elif press == "rotate":
-                        is_valid = self.valid_rotation(current_piece, alt,
-                                                       tetro_shapes)
+                        print('rotate..')
+                        # is_valid = self.valid_rotation(current_piece,  self.tetros)
 
-                        if is_valid >= 0:
+                        # if is_valid >= 0:
 
-                            print('position before: ' +
-                                  str(self.current_piece_board_spaces))
+                        #     print('position before: ' + str(self.current_piece_board_spaces))
 
-                            old_alt = alt
-                            alt = is_valid
-                            # print('alt: ' + str(alt))
+                        #     old_alt = alt
+                        #     alt = is_valid
 
-                            self.reset_for_moving_piece(current_piece, old_alt,
-                                                        tetro_shapes,
-                                                        cur_x, cur_y)
-                            self.draw_tetro(current_piece, alt, tetro_shapes,
-                                            cur_x, cur_y)
+                        #     # self.reset_for_moving_piece(current_piece, old_alt, self.tetros, cur_x, cur_y)
+                        #     self.draw_tetro(current_piece)
 
-                            self.current_piece_occupying(current_piece,
-                                                         alt, tetro_shapes,
-                                                         cur_x, cur_y)
+                        #     # self.current_piece_occupying(current_piece, alt, self.tetros, cur_x, cur_y)
 
 
-                            print('position after: ' +
-                                  str(self.current_piece_board_spaces))
+                        #     print('position after: ' + str(self.current_piece_board_spaces))
 
-                        else:
-                            print('is valid result was: ' + str(is_valid))
+                        # else:
+                        #     print('is valid result was: ' + str(is_valid))
 
-                    self.current_piece_occupying(current_piece, alt,
-                                                 tetro_shapes,
-                                                 cur_x, cur_y)
+                    # self.current_piece_occupying(current_piece, alt, self.tetros, cur_x, cur_y)
 
             pg.display.update()
 
-    def game_screen(self):
+    def draw_game_screen(self):
+        self.draw_background()
+        self.draw_board()
+        # grid-lines for testing
+        # self.draw_empty_grid()
+        self.draw_text()
+        pg.display.flip()
+
+    def draw_background(self):
+        # fill background with black
+        background = pg.Surface(self.surface.get_size())
+        background.fill(color_dict['black'])
+
+        # Blit background to the screen
+        self.surface.blit(background, (0, 0))
+
+    def draw_board(self):
         r = Rect(
             ((config.window['width'] - self.board_width) / 2) - 1,
             (config.window['height'] - self.board_height - 2),
             self.board_width + 2,
             self.board_height + 2
         )
-
         pg.draw.rect(surface=self.surface, color=color_dict['blue'], rect=r, width=1)
 
-    def gameplay_text(self):
-        current_level = 1
-        current_score = 69
-
+    def draw_text(self):
         font = pg.font.SysFont('amiri', 25)
-        score_text = font.render(f'Score: {current_score}', True, color_dict['light_blue'], None)
-        level_text = font.render(f'Level: {current_level}', True, color_dict['light_blue'], None)
+        score_text = font.render(f'Score: {self.score}', True, color_dict['light_blue'], None)
+        level_text = font.render(f'Level: {self.current_level}', True, color_dict['light_blue'], None)
         next_block_text = font.render('Next: ', True, color_dict['light_blue'], None)
 
         score_text_rect = score_text.get_rect()
@@ -263,63 +215,42 @@ class NewGame:
         self.surface.blit(score_text, score_text_rect)
         self.surface.blit(level_text, level_text_rect)
         self.surface.blit(next_block_text, next_block_text_rect)
+    
+    def draw_empty_grid(self):
+        """draw grid for troubleshooting"""
+        m = ((config.window['width'] - self.board_width) / 2)
+        n = (config.window['height'] - self.board_height - 2) + 1
+        for y in range(0, 20):
+            for x in range(0, 10):
+                tetro_rect = Rect(m, n, self.space_size, self.space_size)
+                pg.draw.rect(surface=self.surface, color=color_dict['grey230'], rect=tetro_rect, width=1)
+                m += self.space_size
+            n += self.space_size
+            m = ((config.window['width'] - self.board_width) / 2)
 
-    def draw_tetro(self, tetro_type, alt, shapes, cur_x, cur_y):
-        shape_to_draw = shapes[tetro_type]['iterations'][alt]['shape']
-        shape_color = shapes[tetro_type]['color']
+    def draw_tetro(self, tetro):
 
-        first_drawn = True
-        first_drawn_x = None
-        first_drawn_y = None
-
-        # draw grid for troubleshooting
-        #
-        #
-        # m = ((config.window['width'] - self.board_width) / 2)
-        # n = (config.window['height'] - self.board_height - 2) + 1
-        # for y in range(0, 20):
-        #     for x in range(0, 10):
-            
-        #         tetro_rect = Rect(m, n, self.space_size, self.space_size)
-        #         pg.draw.rect(surface=self.surface, color=color_dict['grey230'],
-        #                     rect=tetro_rect, width=1)
-        #         m += self.space_size
-        #     n += self.space_size
-        #     m = ((config.window['width'] - self.board_width) / 2)
-        #
-        #
-
+        shape_to_draw = tetro['iterations'][tetro['alt']]['shape']
+        print('to draw: ', shape_to_draw)
         for i in range(0, 5):
             for j in range(0, 5):
                 if shape_to_draw[i][j] == 1:
-
-                    if first_drawn:
-
-                        x_pos_draw = cur_x
-                        y_pos_draw = cur_y
-                        first_drawn_x = j
-                        first_drawn_y = i
-
-                        tetro_rect = Rect(x_pos_draw, y_pos_draw, 25, 25)
-                        pg.draw.rect(surface=self.surface, color=shape_color,
-                                       rect=tetro_rect)
-                        pg.draw.rect(surface=self.surface, color=color_dict['grey230'],
-                                       rect=tetro_rect, width=1)
-                        first_drawn = False
-                    else:
-                        x_pos_draw = cur_x + ((j-first_drawn_x) * 25)
-                        y_pos_draw = cur_y + ((i-first_drawn_y) * 25)
-
-                        tetro_rect = Rect(x_pos_draw, y_pos_draw, 25, 25)
-                        pg.draw.rect(surface=self.surface, color=shape_color,
-                                       rect=tetro_rect)
-                        pg.draw.rect(surface=self.surface, color=color_dict['grey230'],
-                                       rect=tetro_rect, width=1)
+                    tetro_rect = Rect(
+                        tetro['pos'][0] + (j * self.space_size), 
+                        tetro['pos'][1] + (i * self.space_size),
+                        self.space_size,
+                        self.space_size
+                    )
+                    pg.draw.rect(surface=self.surface, color=tetro['color'], rect=tetro_rect)
 
     def generate_next_piece(self):
-        next_piece = np.random.choice(self.tetro_array)
-        print('next piece, from random.. ', next_piece)
-        return next_piece
+        tetro = self.tetros[np.random.choice(self.tetro_types)]
+        return {
+            "iterations": tetro['iterations'],
+            "pos": self.top_of_grid,
+            "alt": 0,
+            "color": tetro['color']
+        }
 
     # def reset_for_moving_piece(self, tetro_type, alt, shapes, cur_x, cur_y):
     
@@ -358,7 +289,7 @@ class NewGame:
     #                     pg.draw.rect(surface=self.surface, color=black,
     #                                    rect=tetro_rect)
 
-    # def current_piece_occupying(self, tetro_type, alt, shapes, cur_x, cur_y):
+    # def current_piece_occupying(self, tetro_type, shapes, cur_x, cur_y):
     #     shape_to_print = shapes[tetro_type]['shape']
 
     #     self.current_piece_board_spaces = []
@@ -385,7 +316,7 @@ class NewGame:
 
     def has_bottomed(self):
         for i in range(0, 4):
-            if self.current_piece_board_spaces[i][1] == 19:
+            if self.current_piece['iterations'][self.current_piece['alt']]['shape'][i][1] == 19:
                 return True
             else:
                 piece_val_y = self.current_piece_board_spaces[i][1]
@@ -400,15 +331,14 @@ class NewGame:
     #         piece_val_y = self.current_piece_board_spaces[i][1]
     #         self.board[piece_val_y][piece_val_x] = 1
 
-    def update_board_colors(self, tetro_array, tetro_type, shapes):
-        for a in tetro_array:
+    def update_board_colors(self, tetro_types, tetro_type, shapes):
+        for a in tetro_types:
             self.board[a[1]][a[0]] = shapes[tetro_type]['color']
         print('color was ' + str(shapes[tetro_type]['color']))
         print('new colored grid: ' + str(self.board))
 
-    def key_press(self):
+    def get_key_pressed(self):
         now = pg.time.get_ticks()
-        key_pressed = False
         pressed_keys = pg.key.get_pressed()
         if pressed_keys[K_a]:
             if now - self.key_last >= self.key_cool_down:
