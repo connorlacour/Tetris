@@ -72,4 +72,6 @@ class Tetrominos:
                 self.shapes[i]['iterations'][k]['shape'] = copy.deepcopy(blank_shape)
                 for coord in v['points']:
                     self.shapes[i]['iterations'][k]['shape'][coord[0]][coord[1]] = 1
-        
+    
+    def get_types(self):
+        return list(self.shapes.keys())
