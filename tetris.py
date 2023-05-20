@@ -75,7 +75,7 @@ class NewGame:
 
                 # draw tetro if it has not bottomed out
                 if not self.has_bottomed():
-                    self.current_piece.get()['pos'][1] += 1
+                    self.current_piece.increment_pos(1, 1)
                     self.draw_game_screen()
                     self.draw_tetro(self.current_piece.get())
                     # self.current_piece_occupying(current_piece, self.tetros, cur_x, cur_y)
@@ -120,21 +120,21 @@ class NewGame:
                     if press == "left":
                         movement_valid = self.valid_shift("left")
                         if movement_valid:
-                            self.current_piece.get()['pos'][0] -= 1
+                            self.current_piece.increment_pos(0, -1)
                             self.draw_game_screen()
                             self.draw_tetro(self.current_piece.get())
 
                     elif press == "right":
                         movement_valid = self.valid_shift("right")
                         if movement_valid:
-                            self.current_piece.get()['pos'][0] += 1
+                            self.current_piece.increment_pos(0, 1)
                             self.draw_game_screen()
                             self.draw_tetro(self.current_piece.get())
 
                     elif press == "down":
                         bottomed = self.has_bottomed()
                         if not bottomed:
-                            self.current_piece.get()['pos'][1] += 1
+                            self.current_piece.increment_pos(1, 1)
                             self.last = now
                             self.draw_game_screen()
                             self.draw_tetro(self.current_piece.get())

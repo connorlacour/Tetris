@@ -21,3 +21,11 @@ class CurrentPiece:
     
     def get(self):
         return self.piece
+    
+    def increment_pos(self, coord, val):
+        '''
+        Updates pos attribute of piece by adding the val passed to the current pos val
+        coord: 0 or 1 for x or y coordinate
+        val: amount to increment (positive or negative)
+        '''
+        self.piece['pos'][coord] = self.piece['pos'][coord] + val
