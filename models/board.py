@@ -1,6 +1,7 @@
 from math import floor
 import pygame as pg
 import config
+import copy
 
 class Board:
     def __init__(self, space_size, board_spaces) -> None:
@@ -13,7 +14,8 @@ class Board:
 
     def generate_board(self):
         space = { "color": None }
-        return [[space for x in range(self.board_spaces[0])] for y in range(self.board_spaces[1])]
+        board = [[ copy.deepcopy(space) for x in range(self.board_spaces[0])] for y in range(self.board_spaces[1])]
+        return board
 
     def get_pos_by_coord(self, coord):
         x_offset = (config.window['width'] - self.get_board_size()[0]) / 2
@@ -29,7 +31,7 @@ class Board:
     def get_drop_grid_size(self):
         return [self.drop_grid_spaces[0] * self.space_size, self.drop_grid_spaces[1] * self.space_size]
 
-    def get_board(self):
+    def get(self):
         return self.board
     
     def get_top_of_grid(self):
@@ -39,9 +41,11 @@ class Board:
         ]
 
     def set_board_space_color(self, coord, color):
-        self.board[coord[0]][coord[1]]['color'] = color
+        self.board[coord[1]][coord[0]]['color'] = color
     
     def is_occupied(self, pos):
-        if (pos[0] < 0 or pos[0] > self.board_spaces[0] or pos[1] > self.board_spaces[1]): return True
+        if (pos[1] < 0): return False
+        if (pos[0] < 0 or pos[0] > (self.board_spaces[0] - 1) or pos[1] > (self.board_spaces[1] - 1)): 
+            return True
         return self.board[pos[1]][pos[0]]['color'] != None
     

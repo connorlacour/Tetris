@@ -14,8 +14,6 @@ color_dict = ColorDict().colors
 
 class NewGame:
     def __init__(self):
-        
-        # initialize basic screen components
         pg.init()
         pg.display.set_caption(config.title)
 
@@ -56,7 +54,6 @@ class NewGame:
             # # check for full rows to eliminate
             # self.rows_check()
             now = pg.time.get_ticks()
-
             if now - self.last >= self.cool_down:
 
                 # redraw borders
@@ -72,44 +69,12 @@ class NewGame:
                 self.draw_board()
                 self.last = now
 
-                # increment and draw tetro if it has not bottomed out
-                if not self.has_bottomed():
+                if self.has_bottomed():
+                    self.on_bottomed()
+                else:
                     self.current_piece.increment_pos(1, 1)
                     self.draw_game_screen()
                     self.draw_tetro(self.current_piece.get())
-                    # self.current_piece_occupying(current_piece, self.tetros, cur_x, cur_y)
-                    # self.has_bottomed()
-
-                # if self.has_bottomed():
-                #     self.current_piece_occupying(current_piece, alt, self.tetros, cur_x, cur_y)
-
-                #     # mark resting place of piece in board
-                #     self.update_board()
-                #     self.update_board_colors(self.current_piece_board_pos, current_piece, self.tetros)
-
-                #     # reset cur_x and cur_y to top of board
-                #     # reset alt to default 0
-                #     cur_x = 275
-                #     cur_y = 98
-                #     alt = 0
-
-                #     # set value of current_piece to next_piece
-                #     current_piece = next_piece
-
-                #     # clear drawing of next_piece to allow for next
-                #     # next_piece
-                #     self.reset_for_moving_piece(next_piece, alt, self.tetros, next_x, next_y)
-
-                #     # generate next_piece
-                #     next_piece = self.generate_next_piece()
-
-                #     # reset current_piece_occupying values to new
-                #     # current_piece
-                #     self.current_piece_occupying(current_piece, alt, self.tetros, cur_x, cur_y)
-
-                #     # draw new next and current pieces
-                #     self.draw_tetro(current_piece)
-                #     self.draw_tetro(next_piece)
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -137,6 +102,8 @@ class NewGame:
                             self.last = now
                             self.draw_game_screen()
                             self.draw_tetro(self.current_piece.get())
+                        else:
+                            self.on_bottomed()
 
                     elif press == "rotate":
                         print('rotate..')
@@ -168,7 +135,7 @@ class NewGame:
         self.draw_background()
         self.draw_board()
         # grid-lines for testing
-        self.draw_empty_grid()
+        # self.draw_empty_grid()
         self.draw_text()
         pg.display.flip()
 
@@ -181,6 +148,18 @@ class NewGame:
         self.surface.blit(background, (0, 0))
 
     def draw_board(self):
+        m = ((config.window['width'] - self.board.get_board_size()[0]) / 2)
+        n = (config.window['height'] - self.board.get_board_size()[1] - 2) + 1
+
+        for y in range(0, 20):
+            for x in range(0, 10):
+                color = self.board.get()[y][x]['color'] if self.board.get()[y][x]['color'] is not None else (20, 10, 28)
+                r = Rect(m, n, self.space_size, self.space_size)
+                pg.draw.rect(surface=self.surface, color=color, rect=r)
+                m += self.space_size
+            n += self.space_size
+            m = ((config.window['width'] - self.board.get_board_size()[0]) / 2)
+
         r = Rect(
             ((config.window['width'] - self.board.get_board_size()[0]) / 2) - 1,
             (config.window['height'] - self.board.get_board_size()[1] - 2),
@@ -260,41 +239,50 @@ class NewGame:
         lowest_occupied_row = 4 if (1 in shape[4]) else 3 if (1 in shape[3]) else 2
         
         # if bottom row
-        if lowest_occupied_row + cur_pos[1] == self.board_spaces[1] - 1:
-            return True
+        if lowest_occupied_row + cur_pos[1] == self.board_spaces[1] - 1: return True
+
         # if space below is occupied
         for i in range(0, 5):
-            # COME BACK WHEN PIECES ARE ABLE TO BE PLACED ON BOARD
             x = cur_pos[0] + i
             y = cur_pos[1] + lowest_occupied_row + 1
-            if self.current_piece.is_occupied([lowest_occupied_row, i]) and self.board.is_occupied([x, y]):
-                return True
+            if self.current_piece.is_occupied([lowest_occupied_row, i]) and self.board.is_occupied([x, y]): return True
         return False
-
-    # def update_board(self):
-    #     for i in range(0, 4):
-    #         piece_val_x = self.current_piece_board_pos[i][0]
-    #         piece_val_y = self.current_piece_board_pos[i][1]
-    #         self.board[piece_val_y][piece_val_x] = 1
 
     def valid_shift(self, direction):
         piece_spaces = self.current_piece.get('iterations')[self.current_piece.get('alt')]['points']
         piece_pos = self.current_piece.get('pos')
+
         if direction == "left":
             for pt in piece_spaces:
                 if self.board.is_occupied([pt[0] + piece_pos[0] - 1, pt[1] + piece_pos[1]]): return False
             return True
+        
         if direction == "right":
             for pt in piece_spaces:
                 if self.board.is_occupied([pt[0] + piece_pos[0] + 1, pt[1] + piece_pos[1]]): return False
             return True
+        
         return True
     
-    # def update_board_colors(self, tetro_types, tetro_type, shapes):
-    #     for a in tetro_types:
-    #         self.board.get_board()[a[1]][a[0]] = shapes[tetro_type]['color']
-    #     # print('color was ' + str(shapes[tetro_type]['color']))
-    #     # print('new colored grid: ' + str(self.board))
+    def on_bottomed(self):  
+        # color board spaces
+        shape = self.current_piece.get_shape()
+        for y in range(4, -1, -1):
+            for x in range(0, 4):
+                if shape[x][y] == 1:
+                    self.board.set_board_space_color([self.current_piece.get('pos')[0] + y, self.current_piece.get('pos')[1] + x], self.current_piece.get('color'))
+
+        # set value of current_piece to next_piece & generate next next_piece
+        self.current_piece = self.next_piece
+        self.next_piece = CurrentPiece()
+
+        # clear drawing of next_piece to allow for next next_piece
+        # self.reset_for_moving_piece(next_piece, alt, self.tetros, next_x, next_y)
+
+        # draw new next and current pieces
+        self.draw_game_screen()
+        self.draw_tetro(self.current_piece.get())
+    #     self.draw_tetro(next_piece)
 
     # def valid_rotation(self, tetro_type, alt, shapes):
     #     if alt == 0:
@@ -311,16 +299,6 @@ class NewGame:
     #         print("cannot rotate")
     #         return 0
     #     return -1
-
-    # def rows_check(self):
-    #     for i in range(0, 20):
-    #         count = 0
-    #         for j in range(0, 10):
-    #             if self.board.get_board()[i][j] == 1:
-    #                 count += 1
-
-    #         if count == 10:
-    #             self.clear_full_row(i)
 
 
     # def reset_for_moving_piece(self, tetro_type, alt, shapes, cur_x, cur_y):
