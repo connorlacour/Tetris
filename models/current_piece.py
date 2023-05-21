@@ -42,3 +42,6 @@ class CurrentPiece:
     
     def get_next_piece_pos(self):
         return self.next_piece_pos
+
+    def rotate(self):
+        self.piece['alt'] = (self.piece['alt'] + 1) % len(self.piece['iterations'])

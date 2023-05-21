@@ -108,27 +108,7 @@ class NewGame:
 
                     elif press == "rotate":
                         print('rotate..')
-                        # is_valid = self.is_valid_rotation(current_piece,  self.tetros)
-
-                        # if is_valid >= 0:
-
-                        #     print('position before: ' + str(self.current_piece_board_pos))
-
-                        #     old_alt = alt
-                        #     alt = is_valid
-
-                        #     # self.reset_for_moving_piece(current_piece, old_alt, self.tetros, cur_x, cur_y)
-                        #     self.draw_tetro(current_piece)
-
-                        #     # self.current_piece_occupying(current_piece, alt, self.tetros, cur_x, cur_y)
-
-
-                        #     print('position after: ' + str(self.current_piece_board_pos))
-
-                        # else:
-                        #     print('is valid result was: ' + str(is_valid))
-
-                    # self.current_piece_occupying(current_piece, alt, self.tetros, cur_x, cur_y)
+                        self.current_piece.rotate()
 
             pg.display.update()
 
