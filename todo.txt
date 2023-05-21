@@ -1,5 +1,6 @@
-abstract generate_new_piece to tetrominos.py
+Rotate tetros
 
+bug: tetros pop up one pixel when being drawn in the board for the first time
 bug: have to click twice to enter NewGame
 
 abstract tetro/current_piece logic to a new class, things like:
@@ -9,3 +10,4 @@ abstract tetro/current_piece logic to a new class, things like:
 has_bottomed should be a CurrentPiece func?
  - I'm inclined to say yes, but it then needs knowledge of the current state of the board
  
+has_bottomed & valid_shift check the same things so probably could be combined pretty easily

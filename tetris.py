@@ -154,7 +154,7 @@ class NewGame:
         for y in range(0, 20):
             for x in range(0, 10):
                 color = self.board.get()[y][x]['color'] if self.board.get()[y][x]['color'] is not None else (20, 10, 28)
-                r = Rect(m, n, self.space_size, self.space_size)
+                r = Rect(m + 1, n + 1, self.space_size - 2, self.space_size - 2)
                 pg.draw.rect(surface=self.surface, color=color, rect=r)
                 m += self.space_size
             n += self.space_size
@@ -203,7 +203,7 @@ class NewGame:
             for j in range(0, 5):
                 if shape_to_draw[i][j] == 1:
                     pos = self.board.get_pos_by_coord([tetro['pos'][0] + j, tetro['pos'][1] + i])
-                    tetro_rect = Rect(pos[0], pos[1], self.space_size, self.space_size)
+                    tetro_rect = Rect(pos[0] + 1, pos[1] + 1, self.space_size - 2, self.space_size - 2)
                     pg.draw.rect(surface=self.surface, color=tetro['color'], rect=tetro_rect)
 
     def get_key_pressed(self):
@@ -235,13 +235,7 @@ class NewGame:
 
     def has_bottomed(self):
         piece_pos = self.current_piece.get('pos')
-        shape = self.current_piece.get_shape()
-        lowest_occupied_row = 4 if (1 in shape[4]) else 3 if (1 in shape[3]) else 2
         piece_spaces = self.current_piece.get('iterations')[self.current_piece.get('alt')]['points']
-
-        # if bottom row
-        # if lowest_occupied_row + piece_pos[1] == self.board_spaces[1] - 1: return True
-
         # if space below is occupied
         for pt in piece_spaces:
             if self.board.is_occupied([pt[0] + piece_pos[0], pt[1] + piece_pos[1] + 1]):
