@@ -21,6 +21,9 @@ class CurrentPiece:
     
     def get(self):
         return self.piece
+
+    def get_shape(self):
+        return self.piece['iterations'][self.piece['alt']]['shape']
     
     def increment_pos(self, coord, val):
         '''

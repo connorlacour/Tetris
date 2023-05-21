@@ -57,7 +57,6 @@ class NewGame:
             # self.rows_check()
             now = pg.time.get_ticks()
 
-            # if the appropriate amount of time has passed, move tetro
             if now - self.last >= self.cool_down:
 
                 # redraw borders
@@ -73,7 +72,7 @@ class NewGame:
                 self.draw_board()
                 self.last = now
 
-                # draw tetro if it has not bottomed out
+                # increment and draw tetro if it has not bottomed out
                 if not self.has_bottomed():
                     self.current_piece.increment_pos(1, 1)
                     self.draw_game_screen()
@@ -291,8 +290,14 @@ class NewGame:
     #                          (board_size[1] + i - y_offset)])
 
     def has_bottomed(self):
-        for i in range(0, 4):
-            if self.current_piece.get()['iterations'][self.current_piece.get()['alt']]['shape'][i][1] == 19:
+        print('CUR POS')
+        print(self.current_piece.get()['pos'])
+        # for bottom row
+        shape = self.current_piece.get_shape()
+        lowest_occupied_row = 4 if (1 in shape[4]) else 3 if (1 in shape[3]) else 2
+        for i in range(0, 5):
+            print(shape[0][i])
+            if shape[lowest_occupied_row][i] == 19:
                 return True
             # else:
             #     piece_val_y = self.current_piece_board_pos[i][1]
