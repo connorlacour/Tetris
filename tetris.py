@@ -220,12 +220,108 @@ class NewGame:
 
     def draw_tetro(self, tetro):
         shape_to_draw = tetro['iterations'][tetro['alt']]['shape']
-        for i in range(0, 5):
+        for i in range(4, -1, -1):
             for j in range(0, 5):
                 if shape_to_draw[i][j] == 1:
                     pos = self.board.get_pos_by_coord([tetro['pos'][0] + j, tetro['pos'][1] + i])
                     tetro_rect = Rect(pos[0], pos[1], self.space_size, self.space_size)
                     pg.draw.rect(surface=self.surface, color=tetro['color'], rect=tetro_rect)
+
+    def get_key_pressed(self):
+        now = pg.time.get_ticks()
+        pressed_keys = pg.key.get_pressed()
+        if pressed_keys[K_a]:
+            if now - self.key_last >= self.key_cool_down:
+                self.key_last = now
+                print('moving left')
+                return "left"
+        elif pressed_keys[K_d]:
+            if now - self.key_last >= self.key_cool_down:
+                self.key_last = now
+                print('moving right')
+                return "right"
+        if pressed_keys[K_s]:
+            if now - self.key_last >= self.key_cool_down:
+                self.key_last = now
+                print('moving down faster')
+                return "down"
+        if pressed_keys[K_SPACE]:
+            if now - self.key_last >= self.key_cool_down:
+                self.key_last = now
+                print('rotating')
+                return "rotate"
+
+        if pressed_keys[K_j]:
+            print("swap piece")
+
+    def has_bottomed(self):
+        cur_pos = self.current_piece.get('pos')
+        shape = self.current_piece.get_shape()
+        lowest_occupied_row = 4 if (1 in shape[4]) else 3 if (1 in shape[3]) else 2
+        
+        # if bottom row
+        if lowest_occupied_row + cur_pos[1] == self.board_spaces[1] - 1:
+            return True
+        # if space below is occupied
+        for i in range(0, 5):
+            # COME BACK WHEN PIECES ARE ABLE TO BE PLACED ON BOARD
+            x = cur_pos[0] + i
+            y = cur_pos[1] + lowest_occupied_row + 1
+            if self.current_piece.is_occupied([lowest_occupied_row, i]) and self.board.is_occupied([x, y]):
+                return True
+        return False
+
+    # def update_board(self):
+    #     for i in range(0, 4):
+    #         piece_val_x = self.current_piece_board_pos[i][0]
+    #         piece_val_y = self.current_piece_board_pos[i][1]
+    #         self.board[piece_val_y][piece_val_x] = 1
+
+    def valid_shift(self, direction):
+        piece_spaces = self.current_piece.get('iterations')[self.current_piece.get('alt')]['points']
+        piece_pos = self.current_piece.get('pos')
+        if direction == "left":
+            for pt in piece_spaces:
+                if self.board.is_occupied([pt[0] + piece_pos[0] - 1, pt[1] + piece_pos[1]]): return False
+            return True
+        if direction == "right":
+            for pt in piece_spaces:
+                if self.board.is_occupied([pt[0] + piece_pos[0] + 1, pt[1] + piece_pos[1]]): return False
+            return True
+        return True
+    
+    # def update_board_colors(self, tetro_types, tetro_type, shapes):
+    #     for a in tetro_types:
+    #         self.board.get_board()[a[1]][a[0]] = shapes[tetro_type]['color']
+    #     # print('color was ' + str(shapes[tetro_type]['color']))
+    #     # print('new colored grid: ' + str(self.board))
+
+    # def valid_rotation(self, tetro_type, alt, shapes):
+    #     if alt == 0:
+    #         if 'alt1' in shapes[tetro_type]:
+    #             return 1
+    #     elif alt == 1:
+    #         if 'alt2' in shapes[tetro_type]:
+    #             return 2
+    #         else:
+    #             return 0
+    #     elif alt == 2:
+    #         return 3
+    #     else:
+    #         print("cannot rotate")
+    #         return 0
+    #     return -1
+
+    # def rows_check(self):
+    #     for i in range(0, 20):
+    #         count = 0
+    #         for j in range(0, 10):
+    #             if self.board.get_board()[i][j] == 1:
+    #                 count += 1
+
+    #         if count == 10:
+    #             self.clear_full_row(i)
+
 
     # def reset_for_moving_piece(self, tetro_type, alt, shapes, cur_x, cur_y):
     
@@ -288,111 +384,6 @@ class NewGame:
     #                     self.current_piece_board_pos.append(
     #                         [(board_size[0] + j - x_offset),
     #                          (board_size[1] + i - y_offset)])
-
-    def has_bottomed(self):
-        print('CUR POS')
-        print(self.current_piece.get()['pos'])
-        # for bottom row
-        shape = self.current_piece.get_shape()
-        lowest_occupied_row = 4 if (1 in shape[4]) else 3 if (1 in shape[3]) else 2
-        for i in range(0, 5):
-            print(shape[0][i])
-            if shape[lowest_occupied_row][i] == 19:
-                return True
-            # else:
-            #     piece_val_y = self.current_piece_board_pos[i][1]
-            #     piece_val_x = self.current_piece_board_pos[i][0]
-            #     if self.board[piece_val_y + 1][piece_val_x] == 1:
-            #         return True
-        return False
-
-    # def update_board(self):
-    #     for i in range(0, 4):
-    #         piece_val_x = self.current_piece_board_pos[i][0]
-    #         piece_val_y = self.current_piece_board_pos[i][1]
-    #         self.board[piece_val_y][piece_val_x] = 1
-
-    def update_board_colors(self, tetro_types, tetro_type, shapes):
-        for a in tetro_types:
-            self.board.get_board()[a[1]][a[0]] = shapes[tetro_type]['color']
-        # print('color was ' + str(shapes[tetro_type]['color']))
-        # print('new colored grid: ' + str(self.board))
-
-    def get_key_pressed(self):
-        now = pg.time.get_ticks()
-        pressed_keys = pg.key.get_pressed()
-        if pressed_keys[K_a]:
-            if now - self.key_last >= self.key_cool_down:
-                self.key_last = now
-                print('moving left')
-                return "left"
-        elif pressed_keys[K_d]:
-            if now - self.key_last >= self.key_cool_down:
-                self.key_last = now
-                print('moving right')
-                return "right"
-        if pressed_keys[K_s]:
-            if now - self.key_last >= self.key_cool_down:
-                self.key_last = now
-                print('moving down faster')
-                return "down"
-        if pressed_keys[K_SPACE]:
-            if now - self.key_last >= self.key_cool_down:
-                self.key_last = now
-                print('rotating')
-                return "rotate"
-
-        if pressed_keys[K_j]:
-            print("swap piece")
-
-    def valid_shift(self, direction):
-        piece_spaces = self.current_piece.get()['iterations'][self.current_piece.get()['alt']]['points']
-        piece_pos = self.current_piece.get()['pos']
-        if direction == "left":
-            for pt in piece_spaces:
-                if self.board.is_occupied([pt[0] + piece_pos[0], pt[1] + piece_pos[1]]):
-                    print('left occupied')
-                    return False
-            return True
-        # if direction == "right":
-        #     for j in range(0, 4):
-        #         if self.current_piece_board_pos[j][0] == 9:
-        #             return False
-        #         piece_x_val = self.current_piece_board_pos[j][0]
-        #         piece_y_val = self.current_piece_board_pos[j][1]
-        #         if self.board.get_board()[piece_y_val][piece_x_val+1] == 1:
-        #             print('right occupied')
-        #             return False
-        #     return True
-        return True
-
-    # def valid_rotation(self, tetro_type, alt, shapes):
-    #     if alt == 0:
-    #         if 'alt1' in shapes[tetro_type]:
-    #             return 1
-    #     elif alt == 1:
-    #         if 'alt2' in shapes[tetro_type]:
-    #             return 2
-    #         else:
-    #             return 0
-    #     elif alt == 2:
-    #         return 3
-    #     else:
-    #         print("cannot rotate")
-    #         return 0
-    #     return -1
-
-    # def rows_check(self):
-    #     for i in range(0, 20):
-    #         count = 0
-    #         for j in range(0, 10):
-    #             if self.board.get_board()[i][j] == 1:
-    #                 count += 1
-
-    #         if count == 10:
-    #             self.clear_full_row(i)
-
-
     def clear_full_row(self, row):
         pass
 

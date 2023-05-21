@@ -42,6 +42,6 @@ class Board:
         self.board[coord[0]][coord[1]]['color'] = color
     
     def is_occupied(self, pos):
-        # CHECKING BELOW FOR OFF GRID
-        if (pos[1] < 0 or pos[1] > self.board_spaces[1] or pos[0]): return True
+        if (pos[0] < 0 or pos[0] > self.board_spaces[0] or pos[1] > self.board_spaces[1]): return True
         return self.board[pos[1]][pos[0]]['color'] != None
+    

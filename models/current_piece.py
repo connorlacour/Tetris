@@ -19,7 +19,9 @@ class CurrentPiece:
             "color": tetro['color']
         }
     
-    def get(self):
+    def get(self, dest=None):
+        if dest in self.piece.keys():
+            return self.piece[dest]    
         return self.piece
 
     def get_shape(self):
@@ -32,3 +34,6 @@ class CurrentPiece:
         val: amount to increment (positive or negative)
         '''
         self.piece['pos'][coord] = self.piece['pos'][coord] + val
+    
+    def is_occupied(self, coord):
+        return self.get_shape()[coord[0]][coord[1]] == 1
