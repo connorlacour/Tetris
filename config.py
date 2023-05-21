@@ -10,4 +10,4 @@ board_width = window['height'] - (2*border_buffer)
 
 # Game Settings
 cool_down = 350
-key_cool_down = 40
+key_cool_down = 10
