@@ -1,6 +1,6 @@
 abstract generate_new_piece to tetrominos.py
 
-bug: Have to move mouse to render main menu & have to click twice to enter NewGame
+bug: have to click twice to enter NewGame
 
 abstract tetro/current_piece logic to a new class, things like:
  - get_current_piece_spaces

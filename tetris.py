@@ -52,7 +52,7 @@ class NewGame:
 
         while 1:
             # # check for full rows to eliminate
-            # self.rows_check()
+            self.board.clear_full_rows()
             now = pg.time.get_ticks()
             if now - self.last >= self.cool_down:
 
@@ -234,18 +234,18 @@ class NewGame:
             print("swap piece")
 
     def has_bottomed(self):
-        cur_pos = self.current_piece.get('pos')
+        piece_pos = self.current_piece.get('pos')
         shape = self.current_piece.get_shape()
         lowest_occupied_row = 4 if (1 in shape[4]) else 3 if (1 in shape[3]) else 2
-        
+        piece_spaces = self.current_piece.get('iterations')[self.current_piece.get('alt')]['points']
+
         # if bottom row
-        if lowest_occupied_row + cur_pos[1] == self.board_spaces[1] - 1: return True
+        # if lowest_occupied_row + piece_pos[1] == self.board_spaces[1] - 1: return True
 
         # if space below is occupied
-        for i in range(0, 5):
-            x = cur_pos[0] + i
-            y = cur_pos[1] + lowest_occupied_row + 1
-            if self.current_piece.is_occupied([lowest_occupied_row, i]) and self.board.is_occupied([x, y]): return True
+        for pt in piece_spaces:
+            if self.board.is_occupied([pt[0] + piece_pos[0], pt[1] + piece_pos[1] + 1]):
+                return True
         return False
 
     def valid_shift(self, direction):
@@ -298,7 +298,7 @@ class NewGame:
     #     else:
     #         print("cannot rotate")
     #         return 0
-    #     return -1
+    #     return -
 
 
     # def reset_for_moving_piece(self, tetro_type, alt, shapes, cur_x, cur_y):
@@ -362,8 +362,6 @@ class NewGame:
     #                     self.current_piece_board_pos.append(
     #                         [(board_size[0] + j - x_offset),
     #                          (board_size[1] + i - y_offset)])
-    def clear_full_row(self, row):
-        pass
 
     def update_score(self):
         pass

@@ -14,9 +14,11 @@ class Board:
 
     def generate_board(self):
         space = { "color": None }
-        board = [[ copy.deepcopy(space) for x in range(self.board_spaces[0])] for y in range(self.board_spaces[1])]
-        return board
-
+        return [[ copy.deepcopy(space) for x in range(self.board_spaces[0])] for y in range(self.board_spaces[1])]
+    
+    def generate_empty_row(self):
+        space = { "color": None }
+        return [ copy.deepcopy(space) for x in range(self.board_spaces[0])]
     def get_pos_by_coord(self, coord):
         x_offset = (config.window['width'] - self.get_board_size()[0]) / 2
         y_offset = config.window['height'] - self.get_board_size()[1]
@@ -49,3 +51,15 @@ class Board:
             return True
         return self.board[pos[1]][pos[0]]['color'] != None
     
+    def clear_full_rows(self):
+        full_rows = []
+        for row in range(0, 20):
+            is_full = True
+            for space in self.board[row]:
+                if space['color'] is None:
+                    is_full = False
+            if is_full: full_rows.append(row)
+        for idx in full_rows:
+            self.board[idx] = self.generate_empty_row()
+            for to_shift_idx in range(idx - 1, -1, -1):
+                self.board[to_shift_idx + 1] = self.board[to_shift_idx]

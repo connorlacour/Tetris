@@ -27,6 +27,7 @@ class MainMenu():
         self.main_loop()
 
     def main_loop(self):        
+        self.draw_game_screen()
         while 1:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
