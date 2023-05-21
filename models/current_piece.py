@@ -1,5 +1,6 @@
 import pygame as pg
 import numpy as np
+import config
 
 from models.tetrominos import Tetrominos
 
@@ -9,6 +10,7 @@ class CurrentPiece:
         self.tetros = self.tetrominos.shapes
         self.tetro_types = self.tetrominos.get_types()
         self.piece = self.generate_next_piece()
+        self.next_piece_pos = [13, -2]
 
     def generate_next_piece(self):
         tetro = self.tetros[np.random.choice(self.tetro_types)]
@@ -37,3 +39,6 @@ class CurrentPiece:
     
     def is_occupied(self, coord):
         return self.get_shape()[coord[0]][coord[1]] == 1
+    
+    def get_next_piece_pos(self):
+        return self.next_piece_pos

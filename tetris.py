@@ -28,7 +28,7 @@ class NewGame:
         self.win = False
         self.rows_cleared = 0
         self.current_level = 1
-        self.score = 69
+        self.score = 0
         self.space_size = 30
         self.board_spaces = [10, 20]
 
@@ -48,11 +48,12 @@ class NewGame:
         self.next_piece = CurrentPiece()
 
         self.draw_game_screen()
-        self.draw_tetro(self.current_piece.get())
+        self.draw_tetro()
 
         while 1:
             # # check for full rows to eliminate
-            self.board.clear_full_rows()
+            num_full_rows = self.board.clear_full_rows()
+            self.update_score(num_full_rows)
             now = pg.time.get_ticks()
             if now - self.last >= self.cool_down:
 
@@ -69,12 +70,12 @@ class NewGame:
                 self.draw_board()
                 self.last = now
 
-                if self.has_bottomed():
+                if self.is_bottomed():
                     self.on_bottomed()
                 else:
                     self.current_piece.increment_pos(1, 1)
                     self.draw_game_screen()
-                    self.draw_tetro(self.current_piece.get())
+                    self.draw_tetro()
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -82,32 +83,32 @@ class NewGame:
                 if event.type == pg.KEYDOWN:
                     press = self.get_key_pressed()
                     if press == "left":
-                        movement_valid = self.valid_shift("left")
+                        movement_valid = self.is_valid_shift("left")
                         if movement_valid:
                             self.current_piece.increment_pos(0, -1)
                             self.draw_game_screen()
-                            self.draw_tetro(self.current_piece.get())
+                            self.draw_tetro()
 
                     elif press == "right":
-                        movement_valid = self.valid_shift("right")
+                        movement_valid = self.is_valid_shift("right")
                         if movement_valid:
                             self.current_piece.increment_pos(0, 1)
                             self.draw_game_screen()
-                            self.draw_tetro(self.current_piece.get())
+                            self.draw_tetro()
 
                     elif press == "down":
-                        bottomed = self.has_bottomed()
+                        bottomed = self.is_bottomed()
                         if not bottomed:
                             self.current_piece.increment_pos(1, 1)
                             self.last = now
                             self.draw_game_screen()
-                            self.draw_tetro(self.current_piece.get())
+                            self.draw_tetro()
                         else:
                             self.on_bottomed()
 
                     elif press == "rotate":
                         print('rotate..')
-                        # is_valid = self.valid_rotation(current_piece,  self.tetros)
+                        # is_valid = self.is_valid_rotation(current_piece,  self.tetros)
 
                         # if is_valid >= 0:
 
@@ -137,6 +138,7 @@ class NewGame:
         # grid-lines for testing
         # self.draw_empty_grid()
         self.draw_text()
+        self.draw_next_tetro()
         pg.display.flip()
 
     def draw_background(self):
@@ -171,7 +173,7 @@ class NewGame:
     def draw_text(self):
         font = pg.font.SysFont('amiri', 25)
         score_text = font.render(f'Score: {self.score}', True, color_dict['light_blue'], None)
-        level_text = font.render(f'Level: {self.current_level}', True, color_dict['light_blue'], None)
+        level_text = font.render(f'Level: {self.get_level()}', True, color_dict['light_blue'], None)
         next_block_text = font.render('Next: ', True, color_dict['light_blue'], None)
 
         score_text_rect = score_text.get_rect()
@@ -197,29 +199,40 @@ class NewGame:
             n += self.space_size
             m = ((config.window['width'] - self.board.get_board_size()[0]) / 2)
 
-    def draw_tetro(self, tetro):
-        shape_to_draw = tetro['iterations'][tetro['alt']]['shape']
+    def draw_tetro(self):
+        shape_to_draw = self.current_piece.get_shape()
+        piece_pos = self.current_piece.get('pos')
         for i in range(4, -1, -1):
             for j in range(0, 5):
                 if shape_to_draw[i][j] == 1:
-                    pos = self.board.get_pos_by_coord([tetro['pos'][0] + j, tetro['pos'][1] + i])
+                    pos = self.board.get_pos_by_coord([piece_pos[0] + j, piece_pos[1] + i])
                     tetro_rect = Rect(pos[0] + 1, pos[1] + 1, self.space_size - 2, self.space_size - 2)
-                    pg.draw.rect(surface=self.surface, color=tetro['color'], rect=tetro_rect)
+                    pg.draw.rect(surface=self.surface, color=self.current_piece.get('color'), rect=tetro_rect)
+    
+    def draw_next_tetro(self):
+        shape_to_draw = self.next_piece.get_shape()
+        piece_pos = self.next_piece.get_next_piece_pos()
+        for i in range(4, -1, -1):
+            for j in range(0, 5):
+                if shape_to_draw[i][j] == 1:
+                    pos = self.board.get_pos_by_coord([piece_pos[0] + j, piece_pos[1] + i])
+                    tetro_rect = Rect(pos[0] + 1, pos[1] + 1, self.space_size - 2, self.space_size - 2)
+                    pg.draw.rect(surface=self.surface, color=self.next_piece.get('color'), rect=tetro_rect)
 
     def get_key_pressed(self):
         now = pg.time.get_ticks()
         pressed_keys = pg.key.get_pressed()
-        if pressed_keys[K_a]:
+        if pressed_keys[K_a] or pressed_keys[K_LEFT]:
             if now - self.key_last >= self.key_cool_down:
                 self.key_last = now
                 print('moving left')
                 return "left"
-        elif pressed_keys[K_d]:
+        elif pressed_keys[K_d] or pressed_keys[K_RIGHT]:
             if now - self.key_last >= self.key_cool_down:
                 self.key_last = now
                 print('moving right')
                 return "right"
-        if pressed_keys[K_s]:
+        if pressed_keys[K_s] or pressed_keys[K_DOWN]:
             if now - self.key_last >= self.key_cool_down:
                 self.key_last = now
                 print('moving down faster')
@@ -233,7 +246,7 @@ class NewGame:
         if pressed_keys[K_j]:
             print("swap piece")
 
-    def has_bottomed(self):
+    def is_bottomed(self):
         piece_pos = self.current_piece.get('pos')
         piece_spaces = self.current_piece.get('iterations')[self.current_piece.get('alt')]['points']
         # if space below is occupied
@@ -242,7 +255,7 @@ class NewGame:
                 return True
         return False
 
-    def valid_shift(self, direction):
+    def is_valid_shift(self, direction):
         piece_spaces = self.current_piece.get('iterations')[self.current_piece.get('alt')]['points']
         piece_pos = self.current_piece.get('pos')
 
@@ -275,10 +288,10 @@ class NewGame:
 
         # draw new next and current pieces
         self.draw_game_screen()
-        self.draw_tetro(self.current_piece.get())
+        self.draw_tetro()
     #     self.draw_tetro(next_piece)
 
-    # def valid_rotation(self, tetro_type, alt, shapes):
+    # def is_valid_rotation(self, tetro_type, alt, shapes):
     #     if alt == 0:
     #         if 'alt1' in shapes[tetro_type]:
     #             return 1
@@ -294,71 +307,11 @@ class NewGame:
     #         return 0
     #     return -
 
-
-    # def reset_for_moving_piece(self, tetro_type, alt, shapes, cur_x, cur_y):
+    def update_score(self, val):
+        self.score += val
     
-    #     if alt == 0:
-    #         shape_to_print = shapes[tetro_type]['shape']
-    #     elif alt == 1:
-    #         shape_to_print = shapes[tetro_type]['alt1']
-    #     elif alt == 2:
-    #         shape_to_print = shapes[tetro_type]['alt2']
-    #     elif alt == 3:
-    #         shape_to_print = shapes[tetro_type]['alt3']
-
-    #     first_drawn = True
-    #     first_drawn_x = None
-    #     first_drawn_y = None
-    #     for i in range(0, 5):
-    #         for j in range(0, 5):
-    #             if shape_to_print[i][j] == 1:
-
-    #                 if first_drawn:
-
-    #                     x_pos_draw = cur_x
-    #                     y_pos_draw = cur_y
-    #                     first_drawn_x = j
-    #                     first_drawn_y = i
-
-    #                     tetro_rect = Rect(x_pos_draw, y_pos_draw, 25, 25)
-    #                     pg.draw.rect(surface=self.surface, color=black,
-    #                                    rect=tetro_rect)
-    #                     first_drawn = False
-    #                 else:
-    #                     x_pos_draw = cur_x + ((j - first_drawn_x) * 25)
-    #                     y_pos_draw = cur_y + ((i - first_drawn_y) * 25)
-
-    #                     tetro_rect = Rect(x_pos_draw, y_pos_draw, 25, 25)
-    #                     pg.draw.rect(surface=self.surface, color=black,
-    #                                    rect=tetro_rect)
-
-    # def current_piece_occupying(self, tetro_type, shapes, cur_x, cur_y):
-    #     shape_to_print = shapes[tetro_type]['shape']
-
-    #     self.current_piece_board_pos = []
-    #     board_size[0] = int((cur_x - 175) / 25)
-    #     board_size[1] = int((cur_y - 97) / 25)
-    #     # print('grid x: ' + str(board_size[0]))
-    #     # print('grid y: ' + str(board_size[1]))
-
-    #     y_offset = 0
-    #     first_val = True
-    #     for i in range(0, 5):
-    #         for j in range(0, 5):
-    #             if shape_to_print[i][j] == 1:
-    #                 if first_val:
-    #                     y_offset = i
-    #                     x_offset = j
-    #                     self.current_piece_board_pos.append([board_size[0],
-    #                                                             board_size[1]])
-    #                     first_val = False
-    #                 else:
-    #                     self.current_piece_board_pos.append(
-    #                         [(board_size[0] + j - x_offset),
-    #                          (board_size[1] + i - y_offset)])
-
-    def update_score(self):
-        pass
+    def get_level(self):
+        return int(self.score / 10) + 1
 
     def pause_menu(self):
         pass

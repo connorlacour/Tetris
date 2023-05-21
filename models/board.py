@@ -63,3 +63,4 @@ class Board:
             self.board[idx] = self.generate_empty_row()
             for to_shift_idx in range(idx - 1, -1, -1):
                 self.board[to_shift_idx + 1] = self.board[to_shift_idx]
+        return len(full_rows)
