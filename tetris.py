@@ -186,7 +186,7 @@ class NewGame:
             for j in range(0, 5):
                 if shape_to_draw[i][j] == 1:
                     pos = self.board.get_pos_by_coord([piece_pos[0] + j, piece_pos[1] + i])
-                    tetro_rect = Rect(pos[0] + 1, pos[1] + 1, self.space_size - 2, self.space_size - 2)
+                    tetro_rect = Rect(pos[0] + 1, pos[1], self.space_size - 2, self.space_size - 2)
                     pg.draw.rect(surface=self.surface, color=self.current_piece.get('color'), rect=tetro_rect)
     
     def draw_next_tetro(self):

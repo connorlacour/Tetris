@@ -1,9 +1,7 @@
-Rotate tetros, then press space to shift tetro all the way down
+Rotate tetros, then press [somehting] to shift tetro all the way down
 
-bug: tetros pop up one pixel when being drawn in the board for the first time
 bug: have to click twice to enter NewGame
 bug: things get wild when the tetros start filling up the top ~3 rows
-bug: blue & purple pieces have errors in one of their alt iterations
 
 abstract tetro/current_piece logic to a new class, things like:
  - get_current_piece_spaces
