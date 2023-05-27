@@ -33,7 +33,7 @@ class NewGame:
         self.space_size = 30
         self.board_spaces = [10, 20]
 
-        self.cool_down = config.cool_down
+        self.speed = config.speed
         self.last = pg.time.get_ticks()
         self.key_cool_down = config.key_cool_down
         self.key_last = pg.time.get_ticks()
@@ -52,9 +52,9 @@ class NewGame:
         while 1:
             # # check for full rows to eliminate
             num_full_rows = self.board.clear_full_rows()
-            self.update_score(num_full_rows)
+            if num_full_rows > 0: self.update_score(num_full_rows)
             now = pg.time.get_ticks()
-            if now - self.last >= self.cool_down:
+            if now - self.last >= self.speed:
 
                 # redraw borders
                 #
@@ -270,9 +270,10 @@ class NewGame:
 
     def update_score(self, val):
         self.score += val
+        if self.score % 3 == 0: self.speed *= 0.9
     
     def get_level(self):
-        return int(self.score / 10) + 1
+        return int(self.score % 3) + 1
 
     def pause_menu(self):
         pause = PauseMenu(self.surface, self.current_piece.get('color_name')).main()
