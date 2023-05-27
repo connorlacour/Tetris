@@ -7,3 +7,7 @@ title = "Tetrass"
 border_buffer = 50
 border_thickness = 10
 board_width = window['height'] - (2*border_buffer)
+
+# Game Settings
+speed = 350
+key_cool_down = 10
