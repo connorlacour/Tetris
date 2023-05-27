@@ -8,7 +8,7 @@ import utils.color_dict as color_dict
 
 color_dict = color_dict.ColorDict().colors
 
-class MainMenu():
+class MainMenu:
     def __init__(self):
         pg.init()
         pg.display.set_caption(config.title)
@@ -24,9 +24,7 @@ class MainMenu():
         }
         self.title_text = TextItem(0.3, 0.1, 0.7, config.title, self.frame, False, 14)
 
-        self.main_loop()
-
-    def main_loop(self):        
+    def main(self):        
         self.draw_game_screen()
         while 1:
             for event in pg.event.get():

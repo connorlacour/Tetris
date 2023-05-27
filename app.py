@@ -9,12 +9,8 @@ class App:
         self.run()
     
     def run(self):
-        menu_return = MainMenu().main_loop()
-        # from mainMenu:
-        #   if main_return is 'new game' -> call start_game() to run new game
-        #   elif main_return is 'exit' -> quit game
-        #   elif main_return is 'options' -> call options() to run options
-        #   else -> rerun mainMenu
+        menu_return = MainMenu().main()
+        
         if menu_return == 'new_game':
             self.start_game()
         elif menu_return == 'options':
@@ -23,7 +19,7 @@ class App:
             self.quit()
     
     def start_game(self):
-        tetris = NewGame()
+        tetris = NewGame().main()
 
     def options(self):
         # todo... for now, rerun MainMenu

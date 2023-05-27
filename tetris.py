@@ -5,6 +5,7 @@ import pygame as pg
 from pygame.locals import *
 
 import config
+from pause_menu import PauseMenu
 from models.tetrominos import Tetrominos
 from models.board import Board
 from models.current_piece import CurrentPiece
@@ -39,8 +40,6 @@ class NewGame:
 
         self.board = Board(self.space_size, self.board_spaces)
         self.current_piece_board_pos = []
-
-        self.main()
 
     def main(self):
         # init first piece
@@ -107,8 +106,11 @@ class NewGame:
                             self.on_bottomed()
 
                     elif press == "rotate":
-                        print('rotate..')
-                        self.current_piece.rotate()
+                        if self.is_valid_rotation():
+                            self.current_piece.rotate()
+                    
+                    elif press == "pause":
+                        self.pause_menu()
 
             pg.display.update()
 
@@ -201,30 +203,20 @@ class NewGame:
 
     def get_key_pressed(self):
         now = pg.time.get_ticks()
+        if now - self.key_last < self.key_cool_down: return
         pressed_keys = pg.key.get_pressed()
-        if pressed_keys[K_a] or pressed_keys[K_LEFT]:
-            if now - self.key_last >= self.key_cool_down:
-                self.key_last = now
-                print('moving left')
-                return "left"
-        elif pressed_keys[K_d] or pressed_keys[K_RIGHT]:
-            if now - self.key_last >= self.key_cool_down:
-                self.key_last = now
-                print('moving right')
-                return "right"
-        if pressed_keys[K_s] or pressed_keys[K_DOWN]:
-            if now - self.key_last >= self.key_cool_down:
-                self.key_last = now
-                print('moving down faster')
-                return "down"
-        if pressed_keys[K_SPACE]:
-            if now - self.key_last >= self.key_cool_down:
-                self.key_last = now
-                print('rotating')
-                return "rotate"
+        res = None
 
-        if pressed_keys[K_j]:
-            print("swap piece")
+        if pressed_keys[K_a] or pressed_keys[K_LEFT]: res = "left"
+        elif pressed_keys[K_d] or pressed_keys[K_RIGHT]: res = "right"
+        elif pressed_keys[K_s] or pressed_keys[K_DOWN]: res = "down"
+        elif pressed_keys[K_SPACE]: res = "rotate"
+        elif pressed_keys[K_ESCAPE]: res = "pause"
+
+        if pressed_keys[K_j]: print("swap piece")
+
+        if res is not None: self.key_last = now
+        return res
 
     def is_bottomed(self):
         piece_pos = self.current_piece.get('pos')
@@ -250,9 +242,17 @@ class NewGame:
             return True
         
         return True
+
+    def is_valid_rotation(self):
+        next_alt = (self.current_piece.get('alt') + 1) % len(self.current_piece.get('iterations'))
+        piece_pos = self.current_piece.get('pos')
+        piece_spaces = self.current_piece.get('iterations')[next_alt]['points']
+
+        for pt in piece_spaces:
+            if self.board.is_occupied([pt[0] + piece_pos[0], pt[1] + piece_pos[1]]): return False
+        return True
     
-    def on_bottomed(self):  
-        # color board spaces
+    def on_bottomed(self):
         shape = self.current_piece.get_shape()
         for y in range(4, -1, -1):
             for x in range(0, 4):
@@ -263,29 +263,10 @@ class NewGame:
         self.current_piece = self.next_piece
         self.next_piece = CurrentPiece()
 
-        # clear drawing of next_piece to allow for next next_piece
-        # self.reset_for_moving_piece(next_piece, alt, self.tetros, next_x, next_y)
-
         # draw new next and current pieces
         self.draw_game_screen()
         self.draw_tetro()
-    #     self.draw_tetro(next_piece)
 
-    # def is_valid_rotation(self, tetro_type, alt, shapes):
-    #     if alt == 0:
-    #         if 'alt1' in shapes[tetro_type]:
-    #             return 1
-    #     elif alt == 1:
-    #         if 'alt2' in shapes[tetro_type]:
-    #             return 2
-    #         else:
-    #             return 0
-    #     elif alt == 2:
-    #         return 3
-    #     else:
-    #         print("cannot rotate")
-    #         return 0
-    #     return -
 
     def update_score(self, val):
         self.score += val
@@ -294,7 +275,7 @@ class NewGame:
         return int(self.score / 10) + 1
 
     def pause_menu(self):
-        pass
+        pause = PauseMenu(self.surface, self.current_piece.get('color_name')).main()
 
     def quit(self):
         pg.quit()

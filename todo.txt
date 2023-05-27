@@ -7,7 +7,7 @@ abstract tetro/current_piece logic to a new class, things like:
  - get_current_piece_spaces
  - get_current_tetro_alt
 
-has_bottomed should be a CurrentPiece func?
+is_bottomed should be a CurrentPiece func?
  - I'm inclined to say yes, but it then needs knowledge of the current state of the board
  
 has_bottomed & valid_shift check the same things so probably could be combined pretty easily

@@ -1,5 +1,8 @@
 import pygame as pg
 import copy
+from utils.color_dict import ColorDict
+
+colors = ColorDict().colors
 
 class Tetrominos:
     def __init__(self) -> None:
@@ -9,7 +12,9 @@ class Tetrominos:
                     0: { "points": [[2, 0], [2, 1], [2, 2], [2, 3]] },
                     1: { "points": [[0, 2], [1, 2], [2, 2], [3, 2]] }
                 },
-                'color': (25, 255, 255)
+                'color': colors['water_blue'],
+                'color_name': 'water_blue'
+
             },
             'J': {
                 'iterations': {
@@ -18,7 +23,8 @@ class Tetrominos:
                     2: { "points": [[1, 2], [2, 2], [3, 2], [3, 3]] },
                     3: { "points": [[2, 1], [2, 2], [2, 3], [1, 3]] }
                 },
-                'color': (64, 25, 255)
+                'color': colors['dark_blue'],
+                'color_name': 'dark_blue'
             },
             'L': {
                 'iterations': {
@@ -27,21 +33,24 @@ class Tetrominos:
                     2: { "points": [[1, 2], [2, 2], [3, 2], [1, 3]] },
                     3: { "points": [[1, 1], [2, 1], [2, 2], [2, 3]] }
                 },
-                'color': (255, 153, 51)
+                'color': colors['orange'],
+                'color_name': 'orange'
             },
             'Z': {
                 'iterations': {
                     0: { "points": [[1, 2], [2, 2], [2, 3], [3, 3]] },
                     1: { "points": [[2, 1], [1, 2], [2, 2], [1, 3]] }
                 },
-                'color': (255, 51, 51)
+                'color': colors['bright_red'],
+                'color_name': 'bright_red'
             },
             'S': {
                 'iterations': {
                     0: { "points": [[2, 2], [3, 2], [1, 3], [2, 3]] },
                     1: { "points": [[2, 1], [2, 2], [3, 2], [3, 3]] }
                 },
-                'color': (25, 255, 140)
+                'color': colors['green'],
+                'color_name': 'green'
             },
             'T': {
                 'iterations': {
@@ -50,13 +59,15 @@ class Tetrominos:
                     2: { "points": [[1, 2], [2, 2], [3, 2], [2, 3]] },
                     3: { "points": [[2, 1], [1, 2], [2, 2], [2, 3]] }
                 },
-                'color': (136, 0, 204)
+                'color': colors['purple'],
+                'color_name': 'purple'
             },
             'O': {
                 'iterations': {
                     0: { "points": [[1, 2], [2, 2], [1, 3], [2, 3]] }
                 },
-                'color': (255, 255, 51)
+                'color': colors['bright_yellow'],
+                'color_name': 'bright_yellow'
             }
         }
 

@@ -18,7 +18,8 @@ class CurrentPiece:
             "iterations": tetro['iterations'],
             "pos": [2, -5],
             "alt": 0,
-            "color": tetro['color']
+            "color": tetro['color'],
+            "color_name": tetro['color_name']
         }
     
     def get(self, dest=None):
