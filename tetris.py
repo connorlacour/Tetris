@@ -56,8 +56,6 @@ class NewGame:
             now = pg.time.get_ticks()
             if now - self.last >= self.speed:
 
-                # redraw borders
-                #
                 # EVENTUALLY:
                 #     instead of redrawing borders every frame, create two
                 #     surfaces: first on which to draw static elements (bg,
