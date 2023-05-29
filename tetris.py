@@ -80,37 +80,37 @@ class NewGame:
                 if event.type == pg.QUIT:
                     self.quit()
                 if event.type == pg.KEYDOWN:
-                    press = self.get_key_pressed()
-                    if press == "left":
-                        movement_valid = self.is_valid_shift("left")
-                        if movement_valid:
-                            self.current_piece.increment_pos(0, -1)
-                            self.draw_game_screen()
-                            self.draw_tetro()
+                    match self.get_key_pressed():
+                        case "left":
+                            if self.is_valid_shift("left"):
+                                self.current_piece.increment_pos(0, -1)
+                                self.draw_game_screen()
+                                self.draw_tetro()
 
-                    elif press == "right":
-                        movement_valid = self.is_valid_shift("right")
-                        if movement_valid:
-                            self.current_piece.increment_pos(0, 1)
-                            self.draw_game_screen()
-                            self.draw_tetro()
+                        case "right":
+                            if self.is_valid_shift("right"):
+                                self.current_piece.increment_pos(0, 1)
+                                self.draw_game_screen()
+                                self.draw_tetro()
 
-                    elif press == "down":
-                        bottomed = self.is_bottomed()
-                        if not bottomed:
-                            self.current_piece.increment_pos(1, 1)
-                            self.last = now
-                            self.draw_game_screen()
-                            self.draw_tetro()
-                        else:
-                            self.on_bottomed()
+                        case "down":
+                            if not self.is_bottomed():
+                                self.current_piece.increment_pos(1, 1)
+                                self.last = now
+                                self.draw_game_screen()
+                                self.draw_tetro()
+                            else:
+                                self.on_bottomed()
 
-                    elif press == "rotate":
-                        if self.is_valid_rotation():
-                            self.current_piece.rotate()
+                        case "rotate":
+                            if self.is_valid_rotation():
+                                self.current_piece.rotate()
+
+                        case "bottom":
+                            self.send_to_bottom()
                     
-                    elif press == "pause":
-                        self.pause_menu()
+                        case "pause":
+                            self.pause_menu()
 
             pg.display.update()
 
@@ -210,6 +210,7 @@ class NewGame:
         if pressed_keys[K_a] or pressed_keys[K_LEFT]: res = "left"
         elif pressed_keys[K_d] or pressed_keys[K_RIGHT]: res = "right"
         elif pressed_keys[K_s] or pressed_keys[K_DOWN]: res = "down"
+        elif pressed_keys[K_q]: res = "bottom"
         elif pressed_keys[K_SPACE]: res = "rotate"
         elif pressed_keys[K_ESCAPE]: res = "pause"
 
@@ -266,6 +267,10 @@ class NewGame:
         # draw new next and current pieces
         self.draw_game_screen()
         self.draw_tetro()
+
+    def send_to_bottom(self):
+        while not self.is_bottomed():
+            self.current_piece.increment_pos(1, 1)
 
 
     def update_score(self, val):
